@@ -1,16 +1,10 @@
-from aiogram import Router
-from aiogram.enums import ParseMode
-from aiogram import Bot, Dispatcher, types, Router, F
+from aiogram import types, Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import Command, StateFilter
 from aiogram.fsm.state import StatesGroup, State
-
-from src.Utils.database_methods import register_user, get_all_users
+from src.Utils.database_methods import is_registered
 from src.Utils.keyboards import get_contact, change_data
-from src.Utils.messages import START_MESSAGE, HELP_MESSAGE
-from src.config import settings
-from src.Utils import keyboards
+from src.Utils.messages import *
 
 router = Router(name=__name__)
 
@@ -28,23 +22,18 @@ class User(StatesGroup):
 
 @router.message(CommandStart())
 async def handle_start(msg: types.Message, state: FSMContext):
-    await msg.answer(START_MESSAGE)
-    users_list = get_all_users()
-    iss = False
-    if users_list:
-        for user in users_list:
-            if msg.from_user.id == user[7]:
-                iss = True
-                await msg.answer(f'Здравствуйте {user[1]}!')
-                break
-        if not iss:
-            await msg.answer('Вы не зарегистрированы, давайте зарегистрируемся!')
-            await state.set_state(User.name)
-            await msg.answer('Введите своё имя')
+    registered = is_registered(msg)
+    if registered:
+        await msg.answer(START_MESSAGE_REGISTERED)
     else:
-        await msg.answer('Вы не зарегистрированы, давайте зарегистрируемся!')
-        await state.set_state(User.name)
-        await msg.answer('Введите своё имя')
+        await msg.answer(START_MESSAGE_NOT_REGISTERED)
+
+
+@router.message(Command('register'))
+async def handle_registration(msg: types.Message, state: FSMContext):
+    await msg.answer('Давайте начнём регистрацию!')
+    await state.set_state(User.name)
+    await msg.answer('Введи ваше имя')
 
 
 @router.message(Command('cancel'))
@@ -53,14 +42,14 @@ async def handel_cancel(msg: types.Message, state: FSMContext):
     await state.clear()
 
 
-@router.message(User.name, F.text.regexp(r'^[А-Яа-я]{2,20}$'))
+@router.message(User.name, F.text.regexp(r'^[А-Яа-яё]{2,20}$'))
 async def register_name(msg: types.Message, state: FSMContext):
     await state.update_data(name=msg.text.lower().capitalize())
     await state.set_state(User.surname)
     await msg.answer('Введите вашу фамилию')
 
 
-@router.message(User.surname, F.text.regexp(r'^[А-Яа-я]{4,20}$'))
+@router.message(User.surname, F.text.regexp(r'^[А-Яа-яё]{4,20}$'))
 async def register_surname(msg: types.Message, state: FSMContext):
     await state.update_data(surname=msg.text.lower().capitalize())
     await state.set_state(User.grade)
@@ -86,9 +75,6 @@ async def handle_contact(msg: types.Message, state: FSMContext):
 Фамилия: {data["surname"]}
 Класс: {data["grade"]}
 Номер телефона: {data["phone_number"]}
-Имя в телеграм: {data["name_in_tg"]}
-username: {data["username"]}
-user_id: {data["id"]}
     ''', reply_markup=change_data())
 
 

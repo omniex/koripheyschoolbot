@@ -1,0 +1,8 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+/.venv/
+/src/routers/callback_handlers/__pycache__/
+/src/routers/commands/__pycache__/
+/src/Utils//__pycache__/
+/src/users.db

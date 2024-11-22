@@ -1,9 +1,11 @@
-from aiogram import Router
+from aiogram import types, Router, F
 from aiogram.enums import ParseMode
-from aiogram import Bot, Dispatcher, types, Router, F
-from aiogram.filters import Command
-
-from src.Utils.database_methods import get_all_users
+from aiogram.filters import Command, CommandStart
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
+from src.Utils.database_methods import is_registered, get_all_users
+from src.Utils.keyboards import get_contact, change_data
+from src.Utils.messages import *
 from src.config import settings
 
 router = Router(name=__name__)

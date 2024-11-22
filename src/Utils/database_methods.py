@@ -1,4 +1,7 @@
 import sqlite3
+import re
+
+from aiogram import types
 
 
 def create_db():
@@ -45,6 +48,17 @@ def get_all_users():
     return users
 
 
+def is_registered(msg: types.Message):
+    users_list = get_all_users()
+    iss = False
+    if users_list:
+        for user in users_list:
+            if msg.from_user.id == user[7]:
+                iss = True
+                break
+    return iss
+
+
 def execute_command(command):
     db = sqlite3.connect('users.db')
     cursor = db.cursor()
@@ -52,3 +66,27 @@ def execute_command(command):
     db.commit()
     cursor.close()
     db.close()
+
+
+def get_command(command):
+    db = sqlite3.connect('users.db')
+    cursor = db.cursor()
+    cursor.execute(command)
+    data = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return data
+
+
+def search_for_direct_user(given_data):
+    exp = r'(.)*' + given_data.lower() + r'(.)*'
+    data = get_all_users()
+    find_data = []
+    for user in data:
+        # print(user[1].lower())
+        # print(exp.lower())
+        # print(re.findall(exp, str(user[1]).lower()))
+        if re.findall(exp, str(user[1]).lower()) or re.findall(exp, str(user[2]).lower()):
+            find_data.append(user)
+    # print(find_data)
+    return find_data
