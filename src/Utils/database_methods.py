@@ -41,7 +41,11 @@ def register_user(data):
 def get_all_users():
     db = sqlite3.connect('users.db')
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM USERS")
+    try:
+        cursor.execute("SELECT * FROM USERS")
+    except Exception as err:
+        print(err)
+        create_db()
     users = cursor.fetchall()
     cursor.close()
     db.close()
