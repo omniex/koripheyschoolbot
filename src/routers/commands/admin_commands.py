@@ -1,5 +1,5 @@
 from aiogram import types, Router, F
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
@@ -50,10 +50,11 @@ async def handle_database(msg: types.Message):
         await msg.answer(str(e))
 
 
-@router.message(Command('search'), F.from_user.id.in_(settings.admin_ids))
-async def search_user(msg: types.Message, state: FSMContext):
-    await msg.answer('Пожалуйста, введите данные пользователя')
-    await state.set_state(Search_class.search_name)
+# @router.message(Command('search11'), F.from_user.id.in_(settings.admin_ids))
+# async def search_user(msg: types.Message, state: FSMContext, command: CommandObject):
+#     await msg.answer(f'command: {command}', f'args: {command.args}')
+#     # await msg.answer('Пожалуйста, введите данные пользователя')
+#     # await state.set_state(Search_class.search_name)
 
 
 @router.message(Search_class.search_name)
@@ -66,3 +67,10 @@ async def handle_name(msg: types.Message, state: FSMContext):
         users_info += f'UID: {user[0]}\nName: {user[1]}\nSurname: {user[2]}\nGrade: {user[3]}\nPhone number: {user[4]}\nTelegram name: {user[5]}\nUsername: @{user[6]}\nId: {user[7]}\n'
         await msg.answer(users_info)
     await state.clear()
+
+
+# @router.message(Command('food'), F.from_user.id.in_(settings.admin_ids)):
+# async def handle_food(msg: types.Message):
+#     cnt_good = 0
+#     cnt_bad = 0
+#     await msg.answer(f'Начинаю сбор данных')

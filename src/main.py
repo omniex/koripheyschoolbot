@@ -6,9 +6,9 @@ import sys
 from aiogram import Bot, Dispatcher, types, Router
 from aiogram.types import BotCommand
 
-from routers import router as main_router
+from routers.__init__ import router as main_router
 from config import settings
-from src.Utils.database_methods import create_db
+from Utils.database_methods import create_db
 
 
 async def start():

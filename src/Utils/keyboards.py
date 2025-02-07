@@ -28,3 +28,21 @@ def change_data() -> InlineKeyboardMarkup:
     rows = [row]
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
+
+
+def get_food_marks() -> ReplyKeyboardMarkup:
+    button_good = KeyboardButton(
+        text='✅Мне всё понравилось',
+        callback_data='btn_good'
+    )
+    button_not_good = KeyboardButton(
+        text='Мне понравилось не всё'
+    )
+    button_bad = KeyboardButton(
+        text='❌Мне не понравилось',
+        callback_data='btn_change'
+    )
+    row = [button_good, button_bad]
+    rows = [row]
+    markup = ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True, one_time_keyboard=True)
+    return markup
