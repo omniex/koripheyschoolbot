@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     )
 
     token: str
+    #token: str = 'YOUR TOKEN'
     admin_ids: frozenset[int] = frozenset({1059897141})
     moderator_ids: set[int] = set()
     teacher_ids: frozenset[int] = frozenset({1059897141})

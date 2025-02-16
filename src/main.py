@@ -6,9 +6,10 @@ import sys
 from aiogram import Bot, Dispatcher, types, Router
 from aiogram.types import BotCommand
 
-from routers import router as main_router
+from src.routers import router as main_router
 from src.config import settings
-from Utils.database_methods import create_db
+from src.Utils.database_methods import create_db
+import os
 
 bot = Bot(settings.token)
 dp = Dispatcher()

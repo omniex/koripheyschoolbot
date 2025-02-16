@@ -2,11 +2,11 @@ __all__ = ("router", )
 
 from aiogram import Router
 
-from .base_commands import router as base_commands_router
-from .student_commands import router as student_commands_router
-from .moderation_commands import router as moderation_commands_router
-from .admin_commands import router as admin_commands_router
-from .teacher_commands import router as teacher_commands_router
+from src.routers.commands.base_commands import router as base_commands_router
+from src.routers.commands.student_commands import router as student_commands_router
+from src.routers.commands.moderation_commands import router as moderation_commands_router
+from src.routers.commands.admin_commands import router as admin_commands_router
+from src.routers.commands.teacher_commands import router as teacher_commands_router
 
 router = Router()
 

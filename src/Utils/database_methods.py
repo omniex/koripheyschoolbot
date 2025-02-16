@@ -121,22 +121,22 @@ def register_meal(data):
     db.close()
 
 
-def get_all_food():
-    db = sqlite3.connect('food.db')
-    cursor = db.cursor()
-    try:
-        cursor.execute("SELECT * FROM FOOD")
-    except Exception as err:
-        print(err)
-        create_db_food()
-    meals = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return meals
+# def get_all_food():
+#     db = sqlite3.connect('food.db')
+#     cursor = db.cursor()
+#     try:
+#         cursor.execute("SELECT * FROM FOOD")
+#     except Exception as err:
+#         print(err)
+#         create_db_food()
+#     meals = cursor.fetchall()
+#     cursor.close()
+#     db.close()
+#     return meals
 
 
-def execute_command(command):
-    db = sqlite3.connect('users.db')
+def execute_command(command, db_name: str):
+    db = sqlite3.connect(f'{db_name}.db')
     cursor = db.cursor()
     cursor.execute(command)
     db.commit()
@@ -144,8 +144,8 @@ def execute_command(command):
     db.close()
 
 
-def get_command(command):
-    db = sqlite3.connect('users.db')
+def get_command(command, db_name: str):
+    db = sqlite3.connect(f'{db_name}.db')
     cursor = db.cursor()
     cursor.execute(command)
     data = cursor.fetchall()
