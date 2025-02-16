@@ -35,14 +35,33 @@ def get_food_marks() -> ReplyKeyboardMarkup:
         text='✅Мне всё понравилось',
         callback_data='btn_good'
     )
-    button_not_good = KeyboardButton(
-        text='Мне понравилось не всё'
-    )
+    # button_not_good = KeyboardButton(
+    #     text='Мне понравилось не всё'
+    # )
     button_bad = KeyboardButton(
         text='❌Мне не понравилось',
         callback_data='btn_change'
     )
     row = [button_good, button_bad]
+    rows = [row]
+    markup = ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True, one_time_keyboard=True)
+    return markup
+
+
+def get_meal() -> ReplyKeyboardMarkup:
+    btn_breakfast = KeyboardButton(
+        text='Завтрак',
+        callback_data='breakfast',
+    )
+    btn_lunch = KeyboardButton(
+        text='Обед',
+        callback_data='lunch',
+    )
+    btn_dinner = KeyboardButton(
+        text='Ужин',
+        callback_data='dinner',
+    )
+    row = [btn_breakfast, btn_lunch, btn_dinner]
     rows = [row]
     markup = ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True, one_time_keyboard=True)
     return markup

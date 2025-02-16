@@ -29,17 +29,17 @@ async def handle_start(msg: types.Message, state: FSMContext):
         await msg.answer(START_MESSAGE_NOT_REGISTERED)
 
 
+@router.message(Command('cancel'))
+async def handel_cancel(msg: types.Message, state: FSMContext):
+    await msg.answer('Действие отменено')
+    await state.clear()
+
+
 @router.message(Command('register'))
 async def handle_registration(msg: types.Message, state: FSMContext):
     await msg.answer('Давайте начнём регистрацию!')
     await state.set_state(User.name)
     await msg.answer('Введи ваше имя')
-
-
-@router.message(Command('cancel'))
-async def handel_cancel(msg: types.Message, state: FSMContext):
-    await msg.answer('Действие отменено')
-    await state.clear()
 
 
 @router.message(User.name, F.text.regexp(r'^[А-Яа-яё]{2,20}$'))

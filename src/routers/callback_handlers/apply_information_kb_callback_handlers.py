@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from src.Utils.database_methods import register_user, get_all_users
+from src.Utils.database_methods import register_user, get_all
 from src.routers.commands.base_commands import User
 
 router = Router(name=__name__)
@@ -19,7 +19,7 @@ async def handle_change_info_kb(callback_query: CallbackQuery, state: FSMContext
 async def handle_change_info_kb(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.answer()
     data = await state.get_data()
-    users_list = get_all_users()
+    users_list = get_all('users', 'USERS')
     iss = False
     if users_list:
         for user in users_list:
