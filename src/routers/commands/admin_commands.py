@@ -1,10 +1,13 @@
+import os
+
 from aiogram import types, Router, F
 from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
+from aiogram.types import FSInputFile
 
 from src.Utils.database_methods import execute_command, get_command, \
-    create_db_food, register_meal, get_all, search_for_direct_data
+    create_db_food, register_meal, get_all, search_for_direct_data, export_to_excel
 from src.config import settings
 
 from src.Utils.keyboards import get_food_marks, get_meal
@@ -41,22 +44,28 @@ async def handle_admin(msg: types.Message):
 
 @router.message(Command('database_exec'), F.from_user.id.in_(settings.admin_ids))
 async def handle_database(msg: types.Message):
-    await msg.answer('Trying to execute the command')
-    command = msg.text[15:]
-    await msg.answer(f'command: {command}')
+    args = msg.text.split()
+    if len(args) < 3:
+        await msg.answer('Command using: /database_exec <database name> <command>')
+        return
+    ind = len(f'{args[0]} {args[1]}')
+    await msg.answer(f'Trying to execute command: {msg.text[ind:]}')
     try:
-        execute_command(command)
+        execute_command(msg.text[ind:], args[1])
     except Exception as e:
         await msg.answer(str(e))
 
 
 @router.message(Command('database_get'), F.from_user.id.in_(settings.admin_ids))
 async def handle_database(msg: types.Message):
-    await msg.answer('Trying to execute get command')
-    command = msg.text[14:]
-    await msg.answer(f'command: {command}')
+    args = msg.text.split()
+    if len(args) < 3:
+        await msg.answer('Command using: /database_get <database name> <command>')
+        return
+    ind = len(f'{args[0]} {args[1]}')
+    await msg.answer(f'Trying to execute command: {msg.text[ind:]}')
     try:
-        data = get_command(command)
+        data = get_command(msg.text[ind:], args[1])
         await msg.answer(f'Raw data: \n{data}')
     except Exception as e:
         await msg.answer(str(e))
@@ -119,7 +128,7 @@ async def ask_question(msg: types.Message, state: FSMContext):
         bad = data.get("bad", 0)
         meal = data.get("meal", 'None')
         await msg.answer(
-            f'Приём пищи: {meal}\nВсего ответов: {good + bad}\n✅ Понравилось: {good}\n❌ Не понравилось: {bad}')
+            f'Приём пищи: {meal}\nВсего ответов: {good + bad}\nПроцент понравившихся: {good / (good + bad) * 100}%\n✅ Понравилось: {good}\n❌ Не понравилось: {bad}')
         register_meal(data)
         await state.clear()
         return
@@ -149,3 +158,17 @@ async def handle_answer(msg: types.Message, state: FSMContext):
 
     await state.update_data(remaining=remaining - 1, good=good, bad=bad)
     await ask_question(msg, state)
+
+
+@router.message(Command('export_excel'), F.from_user.id.in_(settings.admin_ids))
+async def handle_excel(msg: types.Message, state: FSMContext):
+    args = msg.text.split()
+    if len(args) != 3:
+        await msg.answer('Command using: /export_excel <database name> <table name>')
+        return
+    try:
+        export_to_excel(args[1], args[2])
+        await msg.answer_document(FSInputFile(f'{args[2]}.xlsx'))
+        os.remove(f'{args[2]}.xlsx')
+    except Exception as e:
+        print(e)

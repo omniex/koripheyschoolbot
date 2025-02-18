@@ -1,5 +1,7 @@
 import sqlite3
 import re
+#import csv
+import pandas as pd
 from datetime import date, time, datetime
 
 from aiogram import types
@@ -153,5 +155,25 @@ def get_command(command, db_name: str):
     db.close()
     return data
 
+# using import csv
+# def export_to_csv(db_name: str, table: str):
+#     try:
+#         with open(f'{db_name}.csv', 'wt') as fp:
+#             writer = csv.writer(fp, delimiter=',')
+#             writer.writerows(get_command(f'SELECT * FROM {table}', db_name))
+#             return True
+#     except Exception as err:
+#         print(err)
 
 
+def export_to_excel(db_name: str, table: str):
+    try:
+        data = get_command(f'SELECT * FROM {table}', db_name)
+        conn = sqlite3.connect(f'{db_name}.db')
+        cursor = conn.execute(f'SELECT * FROM {table}')
+        columns = [description[0] for description in cursor.description]
+        df = pd.DataFrame(data, columns=columns)
+        df.to_excel(f'{db_name}.xlsx', index=False, sheet_name='meals')
+        return True
+    except Exception as err:
+        print(err)
