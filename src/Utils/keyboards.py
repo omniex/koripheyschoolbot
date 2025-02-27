@@ -65,3 +65,22 @@ def get_meal() -> ReplyKeyboardMarkup:
     rows = [row]
     markup = ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True, one_time_keyboard=True)
     return markup
+
+
+def get_for_who_is_annoucement() -> ReplyKeyboardMarkup:
+    btn_admins = KeyboardButton(
+        text = '🥷Администрация'
+    )
+    btn_council = KeyboardButton(
+        text='🫂Совет Гимназистов'
+    )
+    btn_teachers = KeyboardButton(
+        text='👸Учителя'
+    )
+    btn_all_users = KeyboardButton(
+        text='Все пользователи'
+    )
+    row = [btn_admins, btn_council, btn_teachers, btn_all_users]
+    rows = [row]
+    markup = ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True, one_time_keyboard=True)
+    return markup

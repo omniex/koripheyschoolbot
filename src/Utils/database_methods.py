@@ -6,8 +6,10 @@ from datetime import date, time, datetime
 
 from aiogram import types
 
+from src.config import settings
 
-def create_db():
+
+def create_users_db():
     db = sqlite3.connect('users.db')
     cursor = db.cursor()
 
@@ -19,7 +21,8 @@ def create_db():
         phone_number TEXT,
         name_in_tg TEXT,
         username TEXT,
-        user_id integer
+        user_id integer,
+        role TEXT
         )''')
 
     db.commit()
@@ -31,11 +34,12 @@ def register_user(data):
     db = sqlite3.connect('users.db')
     cursor = db.cursor()
 
-    create_db()
+    create_users_db()
 
-    cursor.execute("""INSERT INTO USERS (name, surname, grade, phone_number, name_in_tg, username, user_id) VALUES (
-    '%s', '%s', '%s', '%s', '%s', '%s', '%d')""" % (data["name"], data["surname"], data["grade"], data["phone_number"],
-                                                    data["name_in_tg"], data["username"], data["id"]))
+    cursor.execute("""INSERT INTO USERS (name, surname, grade, phone_number, name_in_tg, username, user_id, role) VALUES (
+    '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s')""" % (
+        data["name"], data["surname"], data["grade"], data["phone_number"],
+        data["name_in_tg"], data["username"], data["id"], data["role"]))
     db.commit()
     cursor.close()
     db.close()
@@ -53,7 +57,7 @@ def get_all(db_name: str, table: str):
         cursor.execute(f"SELECT * FROM {table}")
     except Exception as err:
         print(err)
-        create_db()
+        create_users_db()
     data = cursor.fetchall()
     cursor.close()
     db.close()
@@ -116,7 +120,8 @@ def register_meal(data):
     percentage = float(data["good"] * 100) / (float(data["good"]) + float(data["bad"]))
 
     cursor.execute("""INSERT INTO FOOD (meal, answers, good, bad, percentage_good, datetime) VALUES (
-    '%s', '%d', '%d', '%d', '%f', '%s')""" % (data["meal"], int(data["good"]) + int(data["bad"]), data["good"], data["bad"], percentage, current_datetime))
+    '%s', '%d', '%d', '%d', '%f', '%s')""" % (
+        data["meal"], int(data["good"]) + int(data["bad"]), data["good"], data["bad"], percentage, current_datetime))
 
     db.commit()
     cursor.close()
@@ -155,6 +160,7 @@ def get_command(command, db_name: str):
     db.close()
     return data
 
+
 # using import csv
 # def export_to_csv(db_name: str, table: str):
 #     try:
@@ -177,3 +183,62 @@ def export_to_excel(db_name: str, table: str):
         return True
     except Exception as err:
         print(err)
+
+
+def sync_db_users():
+    data = get_all('users', 'USERS')
+    for user in data:
+        settings.user_ids.add(user[7])
+        if user[8] == 'council':
+            settings.council_ids.add(user[7])
+        elif user[8] == 'teacher':
+            settings.teacher_ids.add(user[7])
+
+
+def get_role(user_id):
+    if user_id in settings.admin_ids:
+        return 'admin'
+    elif user_id in settings.teacher_ids:
+        return 'teacher'
+    elif user_id in settings.council_ids:
+        return 'council'
+    else:
+        return 'user'
+
+
+async def change_role(user_id: int, role: str, msg: types.Message):
+    if role not in settings.roles:
+        await msg.answer(f'{role} is a wrong role')
+        return
+    if user_id not in settings.user_ids:
+        await msg.answer('User is not registered')
+        return
+    role_old = get_role(user_id)
+    print(role, role_old)
+    if role_old == role:
+        await msg.answer('Role is already set')
+        return
+
+    db = sqlite3.connect('users.db')
+    cursor = db.cursor()
+    cursor.execute("UPDATE USERS SET role = ? WHERE user_id = ?", (role, user_id))
+    db.commit()
+    cursor.close()
+    db.close()
+
+    if role_old == 'admin':
+        settings.admin_ids.discard(user_id)
+    elif role_old == 'teacher':
+        settings.teacher_ids.discard(user_id)
+    elif role_old == 'council':
+        settings.council_ids.discard(user_id)
+
+    if role == 'admin':
+        settings.admin_ids.add(user_id)
+    elif role == 'teacher':
+        settings.teacher_ids.add(user_id)
+    elif role == 'council':
+        settings.council_ids.add(user_id)
+
+    await msg.answer('Role is successfully changed')
+    await msg.bot.send_message(user_id, f'Ваша роль изменилась с {role_old} на {role}')

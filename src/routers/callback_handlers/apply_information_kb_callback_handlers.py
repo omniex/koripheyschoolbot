@@ -3,6 +3,7 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from src.Utils.database_methods import register_user, get_all
+from src.config import settings
 from src.routers.commands.base_commands import User
 
 router = Router(name=__name__)
@@ -29,11 +30,13 @@ async def handle_change_info_kb(callback_query: CallbackQuery, state: FSMContext
         if iss:
             await callback_query.message.answer('Вы уже зарегистрированы')
         else:
+            settings.user_ids.add(callback_query.from_user.id)
             register_user(data)
             await callback_query.message.answer('Спасибо, что зарегистрировались!\nВаша заявка отправлена '
                                                 'администратору и после проверки, вы получите уведомление и сможете '
                                                 'начать пользоваться возможностями бота')
     else:
+        settings.user_ids.add(callback_query.from_user.id)
         register_user(data)
         await callback_query.message.answer('Спасибо, что зарегистрировались!\nВаша заявка отправлена '
                                                 'администратору и после проверки, вы получите уведомление и сможете '

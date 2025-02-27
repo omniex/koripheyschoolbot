@@ -2,9 +2,10 @@ from aiogram import types, Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from src.Utils.database_methods import is_registered
-from src.Utils.keyboards import get_contact, change_data
+from src.Utils.database_methods import *
+from src.Utils.keyboards import *
 from src.Utils.messages import *
+from src.config import settings
 
 router = Router(name=__name__)
 
@@ -22,6 +23,7 @@ class User(StatesGroup):
 
 @router.message(CommandStart())
 async def handle_start(msg: types.Message, state: FSMContext):
+    await state.clear()
     registered = is_registered(msg)
     if registered:
         await msg.answer(START_MESSAGE_REGISTERED)
@@ -69,6 +71,8 @@ async def handle_contact(msg: types.Message, state: FSMContext):
     await state.update_data(username=msg.from_user.username)
     await state.update_data(id=msg.contact.user_id)
     await state.update_data(name_in_tg=msg.contact.first_name)
+    user_role = get_role(msg.contact.user_id)
+    await state.update_data(role=user_role)
     data = await state.get_data()
     await msg.answer(f'''
     Имя: {data["name"]}
@@ -99,7 +103,12 @@ async def handle_incorrect(msg: types.Message):
                      ' обратитесь к администрации')
 
 
-@router.message(Command('help'))
+@router.message(Command('info'))
 async def handle_start(msg: types.Message):
-    await msg.answer(HELP_MESSAGE)
+    await msg.answer(INFO_MESSAGE)
     # settings.student_ids.add({msg.from_user.id, msg.contact.first_name, msg})
+
+
+# @router.message(Command('help'), F.from_user.id.in_(settings.admin_ids))
+# async def handle_start(msg: types.Message):
+#     await msg.answer(HELP_COMMANDS_MESSAGE_ADMIN)

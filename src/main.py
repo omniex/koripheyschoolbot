@@ -1,15 +1,12 @@
 import asyncio
 import logging
-import sqlite3
 import sys
 
-from aiogram import Bot, Dispatcher, types, Router
-from aiogram.types import BotCommand
+from aiogram import Bot, Dispatcher
 
 from src.routers import router as main_router
 from src.config import settings
-from src.Utils.database_methods import create_db
-import os
+from src.Utils.database_methods import create_users_db, sync_db_users
 
 bot = Bot(settings.token)
 dp = Dispatcher()
@@ -17,7 +14,9 @@ dp = Dispatcher()
 
 async def start():
     dp.include_router(main_router)
-    create_db()
+    create_users_db()
+    sync_db_users()
+    print(settings.user_ids)
     await dp.start_polling(bot)
 
 
