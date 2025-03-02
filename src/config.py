@@ -14,8 +14,18 @@ class Settings(BaseSettings):
     teacher_ids: set[int] = set()
     council_ids: set[int] = set()
     user_ids: set[int] = set()
+    pending_users: set[int] = set()
+    rejected_users: set[int] = set()
+    approved_users: set[int] = {1059897141}
+    banned_users: set[int] = set()
+
+    not_completed_tickets: set[int] = set()
+    in_work_tickets: set[int] = set()
+    completed_tickets: set[int] = set()
 
     roles: ClassVar[list[str]] = ['admin', 'teacher', 'council', 'user']
+    statuses: ClassVar[list[str]] = ['pending', 'approved', 'rejected']
+    statuses_ticket: ClassVar[list[str]] = ['new', 'in work', 'completed', 'not completed', 'rejected']
 
 
 settings = Settings()

@@ -7,10 +7,12 @@ from src.routers.commands.student_commands import router as student_commands_rou
 from src.routers.commands.council_commands import router as moderation_commands_router
 from src.routers.commands.admin_commands import router as admin_commands_router
 from src.routers.commands.teacher_commands import router as teacher_commands_router
+from src.routers.commands.registration_form import router as registration_router
 
 router = Router()
 
 router.include_routers(base_commands_router,
+                       registration_router,
                        student_commands_router,
                        teacher_commands_router,
                        moderation_commands_router,
