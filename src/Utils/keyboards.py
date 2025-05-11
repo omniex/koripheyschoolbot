@@ -123,13 +123,44 @@ async def get_for_who_is_announcement() -> ReplyKeyboardMarkup:
     return markup
 
 
+async def get_for_who_is_announcement_council() -> ReplyKeyboardMarkup:
+    btn_council = KeyboardButton(
+        text='🫂Совет Гимназистов'
+    )
+    btn_teachers = KeyboardButton(
+        text='👸Учителя'
+    )
+    btn_all_users = KeyboardButton(
+        text='Все пользователи'
+    )
+    row = [btn_council, btn_teachers, btn_all_users]
+    rows = [row]
+    markup = ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True, one_time_keyboard=True)
+    return markup
+
+
 async def get_user_menu(user_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         # [InlineKeyboardButton(text="🔔 Напоминания", callback_data="btn_notes")],
         # [InlineKeyboardButton(text="🏫 Расписание", callback_data="btn_schedule")],
-        [InlineKeyboardButton(text="📰 Новости", callback_data=f"btn_get_news:{user_id}")],
         # [InlineKeyboardButton(text="⬆️ Личное сообщение", callback_data="btn_direct")],
+        [InlineKeyboardButton(text="📰 Новости", callback_data=f"btn_get_news:{user_id}")],
         [InlineKeyboardButton(text="📢 Создать жалобу", callback_data=f"btn_create_ticket:{user_id}")],
+        [InlineKeyboardButton(text="💡 Предложить идею", callback_data=f"btn_create_idea:{user_id}")],
+        [InlineKeyboardButton(text="❓ Информация", callback_data="btn_info")],
+    ])
+
+
+async def get_council_menu(user_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        # [InlineKeyboardButton(text="🔔 Напоминания", callback_data="btn_notes")],
+        # [InlineKeyboardButton(text="🏫 Расписание", callback_data="btn_schedule")],
+        # [InlineKeyboardButton(text="⬆️ Личное сообщение", callback_data="btn_direct")],
+        [InlineKeyboardButton(text="📰 Новости", callback_data=f"btn_get_news:{user_id}"),
+         InlineKeyboardButton(text="📰 Создать новость", callback_data="btn_make_news")],
+        [InlineKeyboardButton(text="📣 Создать объявление", callback_data="btn_send_announcement")],
+        [InlineKeyboardButton(text="📢 Создать жалобу", callback_data=f"btn_create_ticket:{user_id}")],
+        [InlineKeyboardButton(text="💡 Предложить идею", callback_data="btn_tickets_list")],
         [InlineKeyboardButton(text="❓ Информация", callback_data="btn_info")],
     ])
 

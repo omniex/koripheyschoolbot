@@ -62,7 +62,7 @@ async def handle_contact(msg: types.Message, state: FSMContext):
     user_role = await get_role(msg.contact.user_id)
     await state.update_data(role=user_role)
     await state.update_data(status='pending')
-    if msg.contact.user_id == 1059897141:  # auto approve of request for my account
+    if msg.contact.user_id == 1059897141 or msg.contact.user_id in settings.admin_ids:  # auto approve of request for my account
         await state.update_data(status='approved')
     data = await state.get_data()
     await msg.answer(f'''

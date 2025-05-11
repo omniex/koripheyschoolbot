@@ -5,11 +5,24 @@ from aiogram.fsm.context import FSMContext
 from src.Utils.database_methods import register_user, get_all
 from src.Utils.messages import INFO_MESSAGE
 from src.routers.commands.admin_commands import *
-from src.routers.commands.base_commands import handle_news, handle_report
+from src.routers.commands.base_commands import handle_news, handle_report, handle_idea
 from src.routers.commands.registration_form import User
 from src.routers.commands.council_commands import *
 
 router = Router(name=__name__)
+
+
+@router.callback_query(F.data.startswith('user_page:'))
+async def paginate_users(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    all_users = data.get('all_users', [])
+
+    new_page = int(callback.data.split(':')[1])
+    await state.update_data(page=new_page)
+
+    await callback.message.delete()
+    await send_user_page(callback.message.chat.id, all_users, new_page)
+    await callback.answer()
 
 
 @router.callback_query(F.data == 'btn_notes')
@@ -40,6 +53,12 @@ async def handle_info(callback_query: CallbackQuery):
 async def handle_search(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.answer()
     await search_user(callback_query.message, state)
+
+
+@router.callback_query(F.data == 'btn_idea')
+async def handle_idea_cb(callback_query: CallbackQuery, state: FSMContext):
+    await callback_query.answer()
+    await handle_idea(callback_query.message, state)
 
 
 @router.callback_query(F.data == 'btn_list_users')
@@ -84,3 +103,10 @@ async def handle_create_ticket(callback_query: CallbackQuery, state: FSMContext)
     await callback_query.answer()
     user_id = int(callback_query.data.split(":")[1])
     await handle_report(callback_query.message, state, user_id=user_id)
+
+
+@router.callback_query(lambda c: c.data.startswith("btn_create_idea:"))
+async def handle_create_ticket(callback_query: CallbackQuery, state: FSMContext):
+    await callback_query.answer()
+    user_id = int(callback_query.data.split(":")[1])
+    await handle_idea(callback_query.message, state, user_id=user_id)

@@ -10,7 +10,7 @@ from src.config import settings
 
 
 async def create_users_db():
-    db = sqlite3.connect('users.db')
+    db = sqlite3.connect('db/users.db')
     cursor = db.cursor()
 
     cursor.execute('''
@@ -34,7 +34,7 @@ async def create_users_db():
 
 
 async def register_user(data):
-    db = sqlite3.connect('users.db')
+    db = sqlite3.connect('db/users.db')
     cursor = db.cursor()
 
     await create_users_db()
@@ -56,7 +56,7 @@ async def register_user(data):
 
 
 async def create_news_db():
-    db = sqlite3.connect('news.db')
+    db = sqlite3.connect('db/news.db')
     cursor = db.cursor()
 
     cursor.execute('''
@@ -73,7 +73,7 @@ async def create_news_db():
 
 
 async def register_news(data):
-    db = sqlite3.connect('news.db')
+    db = sqlite3.connect('db/news.db')
     cursor = db.cursor()
 
     await create_news_db()
@@ -88,7 +88,7 @@ async def register_news(data):
 
 
 async def create_notes_table():
-    db = sqlite3.connect("notes.db")
+    db = sqlite3.connect("db/notes.db")
     cursor = db.cursor()
 
     cursor.execute('''CREATE TABLE IF NOT EXISTS notes (
@@ -104,7 +104,7 @@ async def create_notes_table():
 
 
 async def create_tickets_db():
-    db = sqlite3.connect('tickets.db')
+    db = sqlite3.connect('db/tickets.db')
     cursor = db.cursor()
 
     cursor.execute('''
@@ -124,8 +124,52 @@ async def create_tickets_db():
     db.close()
 
 
+async def create_ideas_db():
+    db = sqlite3.connect('db/ideas.db')
+    cursor = db.cursor()
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS IDEAS (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ticket_id TEXT,
+        full_name TEXT,
+        user_id INTEGER,
+        ticket TEXT,
+        status TEXT,
+        datetime TEXT
+        )''')
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+async def register_idea(data):
+    db = sqlite3.connect('db/ideas.db')
+    cursor = db.cursor()
+
+    await create_tickets_db()
+
+    current_datetime = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
+
+    cursor.execute("SELECT COUNT(*) FROM IDEAS WHERE user_id = ?", (data["user_id"],))
+    request_count = cursor.fetchone()[0] + 1
+
+    idea_id = f"{data["user_id"]}_{request_count}"
+
+    cursor.execute(
+        """INSERT INTO IDEAS (ticket_id, full_name, user_id, ticket, datetime) VALUES ('%s', '%s', '%d', '%s', '%s')""" % (
+            idea_id, data["full_name"], data["user_id"], data["text"],
+            current_datetime))
+    db.commit()
+    cursor.close()
+    db.close()
+
+    return idea_id
+
+
 async def register_ticket(data):
-    db = sqlite3.connect('tickets.db')
+    db = sqlite3.connect('db/tickets.db')
     cursor = db.cursor()
 
     await create_tickets_db()
@@ -150,7 +194,7 @@ async def register_ticket(data):
 
 async def get_all(db_name: str, table: str):
     try:
-        db = sqlite3.connect(f'{db_name}.db')
+        db = sqlite3.connect(f'db/{db_name}.db')
     except Exception as err:
         print(err)
         return
@@ -189,7 +233,7 @@ async def search_for_direct_data(db_name: str, table: str, given_data):
 
 
 async def create_db_food():
-    db = sqlite3.connect('food.db')
+    db = sqlite3.connect('db/food.db')
     cursor = db.cursor()
 
     cursor.execute('''
@@ -210,7 +254,7 @@ async def create_db_food():
 
 
 async def register_meal(data):
-    db = sqlite3.connect('food.db')
+    db = sqlite3.connect('db/food.db')
     cursor = db.cursor()
 
     await create_db_food()
@@ -228,7 +272,7 @@ async def register_meal(data):
 
 
 # def get_all_food():
-#     db = sqlite3.connect('food.db')
+#     db = sqlite3.connect('db/food.db')
 #     cursor = db.cursor()
 #     try:
 #         cursor.execute("SELECT * FROM FOOD")
@@ -242,7 +286,7 @@ async def register_meal(data):
 
 
 async def execute_command(command, db_name: str):
-    db = sqlite3.connect(f'{db_name}.db')
+    db = sqlite3.connect(f'db/{db_name}.db')
     cursor = db.cursor()
     cursor.execute(command)
     db.commit()
@@ -251,7 +295,7 @@ async def execute_command(command, db_name: str):
 
 
 async def get_command(command, db_name: str):
-    db = sqlite3.connect(f'{db_name}.db')
+    db = sqlite3.connect(f'db/{db_name}.db')
     cursor = db.cursor()
     cursor.execute(command)
     data = cursor.fetchall()
@@ -274,7 +318,7 @@ async def get_command(command, db_name: str):
 async def export_to_excel(db_name: str, table: str):
     try:
         data = await get_command(f'SELECT * FROM {table}', db_name)
-        conn = sqlite3.connect(f'{db_name}.db')
+        conn = sqlite3.connect(f'db/{db_name}.db')
         cursor = conn.execute(f'SELECT * FROM {table}')
         columns = [description[0] for description in cursor.description]
         df = pd.DataFrame(data, columns=columns)
@@ -292,6 +336,8 @@ async def sync_db_users():
             settings.council_ids.add(user[7])
         elif user[8] == 'teacher':
             settings.teacher_ids.add(user[7])
+        elif user[8] == 'banned':
+            settings.banned_ids.add(user[7])
         elif user[8] == 'admin':
             if user[3] != '666':
                 print(user[8], user[3], user[7])
@@ -306,7 +352,7 @@ async def sync_db_users():
 
 
 async def set_db_grade(user_id, grade):
-    db = sqlite3.connect('users.db')
+    db = sqlite3.connect('db/users.db')
     cursor = db.cursor()
     cursor.execute("UPDATE USERS SET grade = ? WHERE user_id = ?", (grade, user_id))
     db.commit()
@@ -319,6 +365,7 @@ async def sync_db_tickets():
     for ticket in data:
         if ticket[5] == 'not completed':
             settings.not_completed_tickets.add(ticket[0])
+            settings.not_completed_tickets.add(ticket[0])
 
 
 async def get_role(user_id):
@@ -327,6 +374,8 @@ async def get_role(user_id):
     elif user_id in settings.teacher_ids:
         return 'teacher'
     elif user_id in settings.council_ids:
+        return 'council'
+    elif user_id in settings.banned_ids:
         return 'council'
     else:
         return 'user'
@@ -364,7 +413,7 @@ async def change_role(user_id: int, role: str, msg: types.Message):
         await msg.answer('Role is already set')
         return
 
-    db = sqlite3.connect('users.db')
+    db = sqlite3.connect('db/users.db')
     cursor = db.cursor()
     cursor.execute("UPDATE USERS SET role = ? WHERE user_id = ?", (role, user_id))
     db.commit()
@@ -377,6 +426,10 @@ async def change_role(user_id: int, role: str, msg: types.Message):
         settings.teacher_ids.discard(user_id)
     elif role_old == 'council':
         settings.council_ids.discard(user_id)
+    elif role_old == 'admin':
+        settings.banned_ids.discard(user_id)
+    elif role_old == 'user':
+        settings.user_ids.discard(user_id)
 
     if role == 'admin':
         settings.admin_ids.add(user_id)
@@ -384,9 +437,11 @@ async def change_role(user_id: int, role: str, msg: types.Message):
         settings.teacher_ids.add(user_id)
     elif role == 'council':
         settings.council_ids.add(user_id)
+    elif role == 'banned':
+        settings.banned_ids.add(user_id)
 
     await msg.answer('Role is successfully changed')
-    await msg.bot.send_message(user_id, f'Ваша роль изменилась с {role_old} на {role}')
+    #await msg.bot.send_message(user_id, f'Ваша роль изменилась с {role_old} на {role}')
 
 
 async def change_status(user_id: int, status: str, msg: types.Message):
@@ -401,7 +456,7 @@ async def change_status(user_id: int, status: str, msg: types.Message):
         await msg.answer(f'Status is already set to {status}')
         return
 
-    db = sqlite3.connect('users.db')
+    db = sqlite3.connect('db/users.db')
     cursor = db.cursor()
     cursor.execute("UPDATE USERS SET status = ? WHERE user_id = ?", (status, user_id))
     db.commit()
@@ -422,8 +477,8 @@ async def change_status(user_id: int, status: str, msg: types.Message):
     elif status == 'approved':
         settings.approved_users.add(user_id)
 
-    await msg.answer('Status is successfully changed')
-    await msg.bot.send_message(user_id, f'Ваш статус заявки изменился с {status_old} на {status}')
+    #await msg.answer('Status is successfully changed')
+    #await msg.bot.send_message(user_id, f'Ваш статус заявки изменился с {status_old} на {status}')
 
 
 async def change_status_ticket(ticket_id: str, status: str, msg: types.Message):
@@ -438,7 +493,7 @@ async def change_status_ticket(ticket_id: str, status: str, msg: types.Message):
         await msg.answer(f'Status of ticket is already set to {status}')
         return
 
-    db = sqlite3.connect('tickets.db')
+    db = sqlite3.connect('db/tickets.db')
     cursor = db.cursor()
     cursor.execute("UPDATE TICKETS SET status = ? WHERE ticket_id = ?", (status, ticket_id))
     db.commit()
@@ -461,7 +516,7 @@ async def change_status_ticket(ticket_id: str, status: str, msg: types.Message):
     elif status == 'not completed':
         settings.not_completed_tickets.add(user_id)
 
-    await msg.answer('Status is successfully changed')
+    #await msg.answer('Status is successfully changed')
 
 
 async def send_request_of_register(user):
